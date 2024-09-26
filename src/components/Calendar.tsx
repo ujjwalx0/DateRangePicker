@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-const DateRangePicker: React.FC = () => {
+interface DateRangePickerProps {
+  onDateChange: (selectedRange: [string, string], weekendsInRange: string[]) => void;
+}
+
+const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
   const today = new Date();
   const [fromDate, setFromDate] = useState<Date | null>(today);
   const [toDate, setToDate] = useState<Date | null>(today);
@@ -12,59 +16,57 @@ const DateRangePicker: React.FC = () => {
   const [weekends, setWeekends] = useState<Date[]>([]);
 
   useEffect(() => {
-
     updateWeekends(fromDate, toDate);
-  }, []);
+  }, [fromDate, toDate]);
 
   const predefinedRanges = [
     {
-      label: 'This Month',
-      getDates: () => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        return { from: start, to: end };
-      },
+        label: 'This Month',
+        getDates: () => {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            return { from: start, to: end };
+        }
     },
     {
-      label: 'Next Week',
-      getDates: () => {
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        const start = new Date(now.setDate(now.getDate() + (7 - dayOfWeek)));
-        const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000); // Monday to Friday
-        return { from: start, to: end };
-      },
+        label: 'Next Week',
+        getDates: () => {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const start = new Date(now.setDate(now.getDate() + (7 - dayOfWeek)));
+            const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000); // next Monday to Friday (exclude weekend)
+            return { from: start, to: end };
+        }
     },
     {
-      label: 'Previous Week',
-      getDates: () => {
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        const start = new Date(now.setDate(now.getDate() - (dayOfWeek + 7)));
-        const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000);
-        return { from: start, to: end };
-      },
+        label: 'Previous Week',
+        getDates: () => {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const start = new Date(now.setDate(now.getDate() - (dayOfWeek + 7)));
+            const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000);
+            return { from: start, to: end };
+        }
     },
     {
-      label: 'Last 7 Days',
-      getDates: () => {
-        const today = new Date();
-        const start = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
-        return { from: start, to: today };
-      },
+        label: 'Last 7 Days',
+        getDates: () => {
+            const today = new Date();
+            const start = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+            return { from: start, to: today };
+        }
     },
     {
-      label: 'Last Month',
-      getDates: () => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const end = new Date(now.getFullYear(), now.getMonth(), 0);
-        return { from: start, to: end };
-      },
-    },
-  ];
-
+        label: 'Last Month',
+        getDates: () => {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const end = new Date(now.getFullYear(), now.getMonth(), 0);
+            return { from: start, to: end };
+        }
+    }
+];
   const applyPredefinedRange = (range: { from: Date; to: Date }) => {
     setFromDate(range.from);
     setToDate(range.to);
@@ -75,45 +77,60 @@ const DateRangePicker: React.FC = () => {
   const toggleCalendars = () => setShowCalendars(!showCalendars);
 
   const handleDateSelection = (date: Date, isFromDate: boolean) => {
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  
+    if (isWeekend) {
+      return; 
+    }
+  
     if (isFromDate) {
-      setFromDate(date);
-      setFromMonth(date.getMonth());
-      setFromYear(date.getFullYear());
-
-      if (!toDate || date > toDate) {
-        setToDate(date);
-        setToMonth(date.getMonth() + 1);
-        setToYear(date.getFullYear());
+      
+      if (fromDate && date.getTime() === fromDate.getTime()) {
+        
+        setFromDate(null);
+        setFromMonth(new Date().getMonth()); 
+        setFromYear(new Date().getFullYear()); 
+        setToDate(null); 
+        setToMonth(new Date().getMonth() + 1); 
+        setToYear(new Date().getFullYear());
+      } else {
+        setFromDate(date);
+        setFromMonth(date.getMonth());
+        setFromYear(date.getFullYear());
+  
+       
+        if (!toDate || date > toDate) {
+          setToDate(date);
+          setToMonth(date.getMonth() + 1); 
+          setToYear(date.getFullYear());
+        }
       }
     } else {
+      
       if (toDate && date.getTime() === toDate.getTime()) {
-        setToDate(null); 
+        
+        setToDate(null);
+        setToMonth(fromMonth + 1); 
+        setToYear(fromYear);
       } else if (date >= (fromDate || new Date())) {
+        
         setToDate(date);
+        setToMonth(date.getMonth());
+        setToYear(date.getFullYear());
       }
     }
-
+  
+   
     updateWeekends(fromDate, toDate);
   };
-
-  const updateToDateOnFromChange = (newMonth: number, newYear: number) => {
-    if (toYear < newYear || (toYear === newYear && toMonth < newMonth)) {
-      setToMonth(newMonth);
-      setToYear(newYear);
-    }
-  };
-
-  const isDateInRange = (date: Date) => {
-    if (!fromDate || !toDate) return false;
-    return date >= fromDate && date <= toDate && date.getDay() !== 0 && date.getDay() !== 6;
-  };
+  
 
   const updateWeekends = (startDate: Date | null, endDate: Date | null) => {
     if (!startDate || !endDate) {
       setWeekends([]);
       return;
     }
-
+  
     const weekendsList: Date[] = [];
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       if (d.getDay() === 0 || d.getDay() === 6) {
@@ -121,6 +138,18 @@ const DateRangePicker: React.FC = () => {
       }
     }
     setWeekends(weekendsList);
+  
+   
+    const selectedRange: [string, string] = [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]];
+    const weekendsInRange = weekendsList.map(date => date.toISOString().split('T')[0]);
+  
+    onDateChange(selectedRange, weekendsInRange);
+  };
+  
+
+  const isDateInRange = (date: Date) => {
+    if (!fromDate || !toDate) return false;
+    return date >= fromDate && date <= toDate && date.getDay() !== 0 && date.getDay() !== 6; // Exclude weekends
   };
 
   const renderCalendar = (isFromDate: boolean) => {
@@ -177,7 +206,6 @@ const DateRangePicker: React.FC = () => {
                   const newMonth = Number(e.target.value);
                   if (isFromDate) {
                     setFromMonth(newMonth);
-                    updateToDateOnFromChange(newMonth, fromYear);
                   } else {
                     setToMonth(newMonth);
                   }
@@ -189,46 +217,43 @@ const DateRangePicker: React.FC = () => {
                   </option>
                 ))}
               </select>
+
               <select
                 value={currentYear}
                 onChange={(e) => {
                   const newYear = Number(e.target.value);
                   if (isFromDate) {
                     setFromYear(newYear);
-                    updateToDateOnFromChange(fromMonth, newYear);
                   } else {
                     setToYear(newYear);
                   }
                 }}
               >
-                {Array.from({ length: 10 }, (_, i) => (
-                  <option key={i} value={currentYear - 5 + i}>
-                    {currentYear - 5 + i}
+                {Array.from({ length: 50 }, (_, i) => (
+                  <option key={i} value={today.getFullYear() - 25 + i}>
+                    {today.getFullYear() - 25 + i}
                   </option>
                 ))}
               </select>
             </th>
           </tr>
-        </thead>
-        <tbody>
           <tr>
-            <th>Su</th>
-            <th>Mo</th>
-            <th>Tu</th>
-            <th>We</th>
-            <th>Th</th>
-            <th>Fr</th>
-            <th>Sa</th>
+            <th>Sun</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
           </tr>
-          {rows}
-        </tbody>
+        </thead>
+        <tbody>{rows}</tbody>
       </table>
     );
   };
 
   const renderWeekend = (date: Date) => {
-    const day = date.getDay();
-    const dayName = day === 0 ? 'Sun' : 'Sat';
+    const dayName = date.getDay() === 0 ? 'Sun' : 'Sat';
     return `${date.toLocaleDateString()} (${dayName})`;
   };
 
@@ -279,7 +304,7 @@ const DateRangePicker: React.FC = () => {
           <h6 className="mt-5">Weekends</h6>
           <div className="d-flex flex-wrap" style={{ overflowY: 'scroll', height: '150px' }}>
             {weekends.map((weekendDate, index) => (
-              <div key={index} className="badge bg-white m-1" style={{ color: 'red', textTransform: 'uppercase' }}>
+              <div key={index} className="badge bg-secondary m-1" style={{ color: 'red', textTransform: 'uppercase' }}>
                 {renderWeekend(weekendDate)}
               </div>
             ))}

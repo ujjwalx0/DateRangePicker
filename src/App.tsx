@@ -1,15 +1,16 @@
 import React from 'react';
-import logo from './logo.svg'; // This import seems unused; you can remove it if not needed
-import './App.css';
-import DateRangePicker from "./components/Calendar";
+import DateRangePicker from './components/Calendar';
 
-function App() {
-  
+const App: React.FC = () => {
+  const handleDateChange = (selectedRange: [string, string], weekendsInRange: string[]) => {
+    console.log('Selected Range:', selectedRange);
+    console.log('Weekends in Range:', weekendsInRange);
+  };
 
   return (
     <div className="App">
-    <DateRangePicker />
-</div>
+      <DateRangePicker onDateChange={handleDateChange} />
+    </div>
   );
 }
 
