@@ -85,6 +85,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
   
     if (isFromDate) {
       if (fromDate && date.getTime() === fromDate.getTime()) {
+        
         setFromDate(null);
         setFromMonth(new Date().getMonth());
         setFromYear(new Date().getFullYear());
@@ -92,35 +93,65 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
         setToMonth(new Date().getMonth() + 1);
         setToYear(new Date().getFullYear());
       } else {
+        
         setFromDate(date);
         setFromMonth(date.getMonth());
         setFromYear(date.getFullYear());
   
-        if (!toDate || date > toDate) {
+        
+        if (toDate && date > toDate) {
           setToDate(date);
-          if (date.getMonth() === 11) {  
-            setToMonth(0);               
-            setToYear(date.getFullYear() + 1);  
+          setFromDate(toDate);  
+          setFromMonth(toDate.getMonth());
+          setFromYear(toDate.getFullYear());
+  
+          if (date.getMonth() === 11) {
+            setToMonth(0);
+            setToYear(date.getFullYear() + 1);
           } else {
-            setToMonth(date.getMonth() + 1);  
+            setToMonth(date.getMonth() + 1);
+            setToYear(date.getFullYear());
+          }
+        } else if (!toDate) {
+          
+          setToDate(date);
+          if (date.getMonth() === 11) {
+            setToMonth(0);
+            setToYear(date.getFullYear() + 1);
+          } else {
+            setToMonth(date.getMonth() + 1);
             setToYear(date.getFullYear());
           }
         }
       }
     } else {
+      
       if (toDate && date.getTime() === toDate.getTime()) {
+        
         setToDate(null);
         setToMonth(fromMonth + 1);
         setToYear(fromYear);
-      } else if (date >= (fromDate || new Date())) {
+      } else if (fromDate && date < fromDate) {
+        
+        setToDate(fromDate);
+        setToMonth(fromMonth);
+        setToYear(fromYear);
+  
+        setFromDate(date);
+        setFromMonth(date.getMonth());
+        setFromYear(date.getFullYear());
+      } else {
+        
         setToDate(date);
         setToMonth(date.getMonth());
         setToYear(date.getFullYear());
       }
     }
   
+    
     updateWeekends(fromDate, toDate);
   };
+  
   
 
   const updateWeekends = (startDate: Date | null, endDate: Date | null) => {
