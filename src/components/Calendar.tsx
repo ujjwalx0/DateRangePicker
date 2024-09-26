@@ -11,7 +11,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
   const [showCalendars, setShowCalendars] = useState(false);
   const [fromMonth, setFromMonth] = useState<number>(new Date().getMonth());
   const [fromYear, setFromYear] = useState<number>(new Date().getFullYear());
-  const [toMonth, setToMonth] = useState<number>(new Date().getMonth());
+  const [toMonth, setToMonth] = useState<number>(new Date().getMonth()+1);
   const [toYear, setToYear] = useState<number>(new Date().getFullYear());
   const [weekends, setWeekends] = useState<Date[]>([]);
 
@@ -80,47 +80,45 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   
     if (isWeekend) {
-      return; 
+      return;
     }
   
     if (isFromDate) {
-      
       if (fromDate && date.getTime() === fromDate.getTime()) {
-        
         setFromDate(null);
-        setFromMonth(new Date().getMonth()); 
-        setFromYear(new Date().getFullYear()); 
-        setToDate(null); 
-        setToMonth(new Date().getMonth() + 1); 
+        setFromMonth(new Date().getMonth());
+        setFromYear(new Date().getFullYear());
+        setToDate(null);
+        setToMonth(new Date().getMonth() + 1);
         setToYear(new Date().getFullYear());
       } else {
         setFromDate(date);
         setFromMonth(date.getMonth());
         setFromYear(date.getFullYear());
   
-       
         if (!toDate || date > toDate) {
           setToDate(date);
-          setToMonth(date.getMonth() + 1); 
-          setToYear(date.getFullYear());
+          if (date.getMonth() === 11) {  
+            setToMonth(0);               
+            setToYear(date.getFullYear() + 1);  
+          } else {
+            setToMonth(date.getMonth() + 1);  
+            setToYear(date.getFullYear());
+          }
         }
       }
     } else {
-      
       if (toDate && date.getTime() === toDate.getTime()) {
-        
         setToDate(null);
-        setToMonth(fromMonth + 1); 
+        setToMonth(fromMonth + 1);
         setToYear(fromYear);
       } else if (date >= (fromDate || new Date())) {
-        
         setToDate(date);
         setToMonth(date.getMonth());
         setToYear(date.getFullYear());
       }
     }
   
-   
     updateWeekends(fromDate, toDate);
   };
   
@@ -283,9 +281,15 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
               {renderCalendar(false)}
             </div>
           </div>
-          <button className="btn btn-primary me-5 mx-0 mt-1" onClick={() => setShowCalendars(false)}>
-            Confirm
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+  <button className="btn btn-primary  mt-1" onClick={() => setShowCalendars(false)}>
+    Confirm
+  </button>
+</div>
+
+
+
+
         </div>
       )}
 
