@@ -299,18 +299,19 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ onDateChange }) => {
         </div>
       </div>
 
-      {weekends.length > 0 && (
-        <div>
-          <h6 className="mt-5">Weekends</h6>
-          <div className="d-flex flex-wrap" style={{ overflowY: 'scroll', height: '150px' }}>
-            {weekends.map((weekendDate, index) => (
-              <div key={index} className="badge bg-secondary m-1" style={{ color: 'red', textTransform: 'uppercase' }}>
-                {renderWeekend(weekendDate)}
-              </div>
-            ))}
-          </div>
+      {!showCalendars && weekends.length > 0 && (
+  <div>
+    <h6 className="mt-5">Weekends</h6>
+    <div className="d-flex flex-wrap" style={{ overflowY: 'scroll', height: '150px' }}>
+      {weekends.map((weekendDate, index) => (
+        <div key={index} className="badge bg-secondary m-1" style={{ color: 'red', textTransform: 'uppercase' }}>
+          {renderWeekend(weekendDate)}
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
